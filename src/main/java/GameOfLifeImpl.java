@@ -4,9 +4,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 import java.util.stream.IntStream;
 
 public class GameOfLifeImpl implements GameOfLife {
+
+    public static int NUM_THREADS = 32;
+
     @Override
     public List<String> play(String inputFile) {
         List<String> result = new ArrayList<>();
@@ -25,32 +30,21 @@ public class GameOfLifeImpl implements GameOfLife {
                 }
             }
 
-            long t = System.currentTimeMillis();
 
-            for(int k = 0; k < M; k++) {
-
-                IntStream.range(0, N*N).parallel().forEach(e ->{
-                    final int i = e/N;
-                    final int j = e%N;
-                    sums[i][j] = sumOfCells(i, j, cells, N);
-                } );
-
-                //для отладки напечатать sums
-//                StringBuilder stringBuilder = new StringBuilder();
-//                for (int i = 0; i <N; i++) {
-//                    for (int j = 0; j < N; j++) {
-//                        stringBuilder.append(sums[i][j]);
-//                    }
-//                    stringBuilder.append("\n");
-//                }
-//                System.out.println(stringBuilder.toString());
-
-                IntStream.range(0, N*N).parallel().forEach(e ->{
-                    int i = e/N;
-                    int j = e%N;
-                    cells[i][j]= update(cells[i][j], sums[i][j]);
-                } );
+            CyclicBarrier barrier = new CyclicBarrier(NUM_THREADS+1);
+            List<Thread> threads = new ArrayList<>();
+            for (int i = 0; i < NUM_THREADS; i++) {
+                threads.add(new Thread(new MyThread(sums, cells, i, N, M, barrier)));
             }
+            long t = System.currentTimeMillis();
+            for (Thread thread : threads) {
+                thread.start();
+            }
+            for (int i = 0; i < M; i++) {
+                barrier.await();
+                barrier.await();
+            }
+//            runGameOfLife(N, M, cells, sums);
             System.out.println(System.currentTimeMillis() - t);
 
             //подготовка к тому формату который ожидается в unit test
@@ -63,18 +57,49 @@ public class GameOfLifeImpl implements GameOfLife {
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
         }
         return result;
     }
 
-    private int update(int cell, int sum) {
+    private void runGameOfLife(int n, int m, int[][] cells, int[][] sums) {
+        for(int k = 0; k < m; k++) {
+
+            IntStream.range(0, n * n).parallel().forEach(e ->{
+                final int i = e/ n;
+                final int j = e% n;
+                sums[i][j] = sumOfCells(i, j, cells, n);
+            } );
+            IntStream.range(0, n * n).parallel().forEach(e ->{
+                int i = e/ n;
+                int j = e% n;
+                cells[i][j]= update(cells[i][j], sums[i][j]);
+            } );
+
+            //для отладки напечатать sums
+//                StringBuilder stringBuilder = new StringBuilder();
+//                for (int i = 0; i <N; i++) {
+//                    for (int j = 0; j < N; j++) {
+//                        stringBuilder.append(sums[i][j]);
+//                    }
+//                    stringBuilder.append("\n");
+//                }
+//                System.out.println(stringBuilder.toString());
+
+        }
+    }
+
+    public static int update(int cell, int sum) {
         if (cell == 0){
             if(sum == 3) return 1;
         } else if (sum == 2 || sum == 3) return 1;
         return 0;
     }
 
-    private int sumOfCells(int i, int j, int[][] cells, int N){
+    public static int sumOfCells(int i, int j, int[][] cells, int N){
         return cells[(i-1 + N)%N][(j-1 + N)%N] +
                 cells[(i-1 + N)%N][(j + N)%N]     +
                 cells[(i-1 + N)%N][(j+1 + N)%N]   +
