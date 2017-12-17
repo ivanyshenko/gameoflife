@@ -10,14 +10,16 @@ public class MyThread implements Runnable {
     private int N;
     private int M;
     private CyclicBarrier barrier;
+    private CyclicBarrier masterBarrier;
 
-    public MyThread(int[][] sums, int[][] cells, int id, int n, int m, CyclicBarrier barrier) {
+    public MyThread(int[][] sums, int[][] cells, int id, int n, int m, CyclicBarrier barrier, CyclicBarrier masterBarrier) {
         this.sums = sums;
         this.cells = cells;
         this.id = id;
-        N = n;
-        M = m;
+        this.N = n;
+        this.M = m;
         this.barrier = barrier;
+        this.masterBarrier = masterBarrier;
     }
 
     @Override
@@ -47,6 +49,13 @@ public class MyThread implements Runnable {
             } catch (BrokenBarrierException e) {
                 e.printStackTrace();
             }
+        }
+        try {
+            masterBarrier.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
         }
     }
 }

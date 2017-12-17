@@ -10,7 +10,7 @@ import java.util.stream.IntStream;
 
 public class GameOfLifeImpl implements GameOfLife {
 
-    public static int NUM_THREADS = 32;
+    public static int NUM_THREADS = 16;
 
     @Override
     public List<String> play(String inputFile) {
@@ -30,20 +30,17 @@ public class GameOfLifeImpl implements GameOfLife {
                 }
             }
 
-
-            CyclicBarrier barrier = new CyclicBarrier(NUM_THREADS+1);
+            CyclicBarrier barrier = new CyclicBarrier(NUM_THREADS);
+            CyclicBarrier masterBarrier = new CyclicBarrier(NUM_THREADS+1);
             List<Thread> threads = new ArrayList<>();
             for (int i = 0; i < NUM_THREADS; i++) {
-                threads.add(new Thread(new MyThread(sums, cells, i, N, M, barrier)));
+                threads.add(new Thread(new MyThread(sums, cells, i, N, M, barrier, masterBarrier)));
             }
             long t = System.currentTimeMillis();
             for (Thread thread : threads) {
                 thread.start();
             }
-            for (int i = 0; i < M; i++) {
-                barrier.await();
-                barrier.await();
-            }
+            masterBarrier.await();
 //            runGameOfLife(N, M, cells, sums);
             System.out.println(System.currentTimeMillis() - t);
 
