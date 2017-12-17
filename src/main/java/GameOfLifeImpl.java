@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.IntStream;
 
 public class GameOfLifeImpl implements GameOfLife {
     @Override
@@ -24,22 +25,35 @@ public class GameOfLifeImpl implements GameOfLife {
                 }
             }
 
+            long t = System.currentTimeMillis();
 
             for(int k = 0; k < M; k++) {
 
+                IntStream.range(0, N*N).parallel().forEach(e ->{
+                    final int i = e/N;
+                    final int j = e%N;
+                    sums[i][j] = sumOfCells(i, j, cells, N);
+                } );
 
+                //для отладки напечатать sums
+//                StringBuilder stringBuilder = new StringBuilder();
+//                for (int i = 0; i <N; i++) {
+//                    for (int j = 0; j < N; j++) {
+//                        stringBuilder.append(sums[i][j]);
+//                    }
+//                    stringBuilder.append("\n");
+//                }
+//                System.out.println(stringBuilder.toString());
 
-                for(int i=0; i<N; i++){
-                    for(int j=0; j<N; j++){
-                        sums[i][j] = sumOfCells(i, j, cells, N);
-                    }
-                }
-
-                for(int i=0; i<N; i++)
-                    for(int j=0; j<N; j++)
-                        cells[i][j]= update(cells[i][j], sums[i][j]);
+                IntStream.range(0, N*N).parallel().forEach(e ->{
+                    int i = e/N;
+                    int j = e%N;
+                    cells[i][j]= update(cells[i][j], sums[i][j]);
+                } );
             }
+            System.out.println(System.currentTimeMillis() - t);
 
+            //подготовка к тому формату который ожидается в unit test
             for (int i = 0; i < N; i++) {
                 result.add(
                         Arrays.toString(cells[i])
