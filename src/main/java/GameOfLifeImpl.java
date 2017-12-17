@@ -26,6 +26,9 @@ public class GameOfLifeImpl implements GameOfLife {
 
 
             for(int k = 0; k < M; k++) {
+
+
+
                 for(int i=0; i<N; i++){
                     for(int j=0; j<N; j++){
                         sums[i][j] = sumOfCells(i, j, cells, N);
@@ -58,20 +61,13 @@ public class GameOfLifeImpl implements GameOfLife {
     }
 
     private int sumOfCells(int i, int j, int[][] cells, int N){
-        int sum = 0;
-        for (int k = i - 1; k < i + 2; k++) {
-            for (int l = j - 1; l < j + 2; l++) {
-                sum += cells[(k + N)%N][(l + N)%N];
-//                if (i == 3 && j == 3)
-//                    System.out.println(k + " " + l + " " + cells[(k + N)%N][(l + N)%N]);
-            }
-        }
-        return sum - cells[i][j];
-    }
-
-    public static void main(String[] args) {
-        System.out.println(-1 % 5);
-//        GameOfLifeImpl gameOfLife = new GameOfLifeImpl();
-//        gameOfLife.play("C:\\Users\\alex\\IdeaProjects\\gameoflife1\\gameoflife\\resources\\input.txt");
+        return cells[(i-1 + N)%N][(j-1 + N)%N] +
+                cells[(i-1 + N)%N][(j + N)%N]     +
+                cells[(i-1 + N)%N][(j+1 + N)%N]   +
+                cells[(i + N)%N][(j-1 + N)%N]     +
+                cells[(i + N)%N][(j+1 + N)%N]     +
+                cells[(i+1 + N)%N][(j-1 + N)%N]   +
+                cells[(i+1 + N)%N][(j + N)%N]     +
+                cells[(i+1 + N)%N][(j+1 + N)%N];
     }
 }

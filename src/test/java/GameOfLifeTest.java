@@ -31,8 +31,11 @@ public class GameOfLifeTest {
 
     private void testOneGame(String inputFile, String expectedOutputFile) throws FileNotFoundException {
         long t = System.currentTimeMillis();
-        List<String> result = gameOfLife.play(inputFile);
-        System.out.println(System.currentTimeMillis() - t);
+        List<String> result = null;
+        for (int i = 0; i < 10; i++) {
+            result = gameOfLife.play(inputFile);
+        }
+        System.out.println((System.currentTimeMillis() - t)/10);
         assertEquals(readFile(expectedOutputFile), result);
     }
 
