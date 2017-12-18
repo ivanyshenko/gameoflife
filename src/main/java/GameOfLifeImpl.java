@@ -75,17 +75,6 @@ public class GameOfLifeImpl implements GameOfLife {
                 int j = e% n;
                 cells[i][j]= update(cells[i][j], sums[i][j]);
             } );
-
-            //для отладки напечатать sums
-//                StringBuilder stringBuilder = new StringBuilder();
-//                for (int i = 0; i <N; i++) {
-//                    for (int j = 0; j < N; j++) {
-//                        stringBuilder.append(sums[i][j]);
-//                    }
-//                    stringBuilder.append("\n");
-//                }
-//                System.out.println(stringBuilder.toString());
-
         }
     }
 
